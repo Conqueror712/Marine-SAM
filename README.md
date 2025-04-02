@@ -30,4 +30,15 @@ pip3 install torch==2.5.1+cu121 torchvision==0.20.1+cu121 torchaudio==2.5.1+cu12
 >
 > https://medium.com/data-science/train-fine-tune-segment-anything-2-sam-2-in-60-lines-of-code-928dd29a63b3
 
-值得一提的是，如果在 Windows 上安装，建议将 WSL 与 Ubuntu 一起使用。
+```bash
+# Windows 暂未测试，推荐用 WSL
+```
+
+```bash
+# Linux 实测可正常配置环境：
+pip install numpy
+pip install -e .
+pip install opencv-python pycocotools matplotlib onnxruntime onnx
+```
+
+注意：需要先 `Train.py` 生成 `model.torch`，再 `TEST_Net.py`，另外，训练代码需要针对 RUOD 数据集进行格式上的调整。
