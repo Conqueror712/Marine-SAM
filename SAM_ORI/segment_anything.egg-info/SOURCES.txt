@@ -1,5 +1,3 @@
-LICENSE
-README.md
 setup.cfg
 setup.py
 segment_anything/__init__.py

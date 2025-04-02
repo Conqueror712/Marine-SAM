@@ -1,7 +1,6 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.2
 Name: segment_anything
 Version: 1.0
-License-File: LICENSE
 Provides-Extra: all
 Requires-Dist: matplotlib; extra == "all"
 Requires-Dist: pycocotools; extra == "all"
@@ -13,3 +12,4 @@ Requires-Dist: flake8; extra == "dev"
 Requires-Dist: isort; extra == "dev"
 Requires-Dist: black; extra == "dev"
 Requires-Dist: mypy; extra == "dev"
+Dynamic: provides-extra
