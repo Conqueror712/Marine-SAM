@@ -12,3 +12,7 @@
 ![image](./img/SAM_ORI_2.png)
 
 #### 1.2 SAM2
+
+> 这是 SAM2
+
+好像之前是在 Linux 上运行的
