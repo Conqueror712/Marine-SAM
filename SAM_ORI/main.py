@@ -34,7 +34,7 @@ def show_anns(anns):
         ax.imshow(np.dstack((img, m * 0.35)))
 
 # 加载图像
-image_path = 'images/000970.jpg'
+image_path = 'images/set_o48.jpg'
 image = cv2.imread(image_path)
 if image is None:
     raise FileNotFoundError(f"Image not found at path: {image_path}")
