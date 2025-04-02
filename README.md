@@ -22,8 +22,12 @@ pip3 install torch==2.5.1+cu121 torchvision==0.20.1+cu121 torchaudio==2.5.1+cu12
 
 ![image](./img/SAM_ORI_2.png)
 
-#### 1.2 SAM2
+#### 1.2 SAM2_FT
 
-> 这是 SAM2
+> 这是 SAM2 的微调版本，目前还没有进行微调，详见：
+>
+> https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code?tab=readme-ov-file
+>
+> https://medium.com/data-science/train-fine-tune-segment-anything-2-sam-2-in-60-lines-of-code-928dd29a63b3
 
-好像之前是在 Linux 上运行的
+值得一提的是，如果在 Windows 上安装，建议将 WSL 与 Ubuntu 一起使用。
