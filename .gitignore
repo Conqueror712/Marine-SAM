@@ -1,3 +1,4 @@
 models/
 datasets/
 **/*.pth
+**/__pycache__/
