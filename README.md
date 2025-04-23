@@ -1,4 +1,14 @@
 # Marine-SAM
+### 零、Todo List
+
+> ✅SAM2 Fine-Tuning
+>
+> ⬜完善一下环境配置步骤
+>
+> ⬜实验数据收集整理
+>
+> ⬜论文初稿
+
 ### 一、运行方法
 
 #### 1.1 SAM_ORI
@@ -36,9 +46,12 @@ pip3 install torch==2.5.1+cu121 torchvision==0.20.1+cu121 torchaudio==2.5.1+cu12
 
 ```bash
 # Linux 实测可正常配置环境：
+conda create -n SAM2 python=3.11 -y
+conda activate SAM2
 pip install numpy
 pip install -e .
 pip install opencv-python pycocotools matplotlib onnxruntime onnx
 ```
 
 注意：需要先 `Train.py` 生成 `model.torch`，再 `TEST_Net.py`，另外，训练代码需要针对 RUOD 数据集进行格式上的调整。
+
