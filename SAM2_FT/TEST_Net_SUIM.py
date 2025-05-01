@@ -1,8 +1,9 @@
-# Segment image region using fine-tuned SAM2 model on UFO120 dataset
+# Segment image region using fine-tuned SAM2 model on SUIM dataset
 import numpy as np
 import torch
 import cv2
 import os
+import glob
 from pathlib import Path
 import matplotlib.pyplot as plt
 from sam2.build_sam import build_sam2
@@ -181,17 +182,54 @@ def visualize_results(image, masks, scores, save_dir):
 
 def main():
     # Configuration
-    image_path = "UFO120/train/lrd/set_f100.jpg"  # path to test image
-    mask_path = "UFO120/train/mask/set_f100.jpg"  # Optional: path to mask for guided testing (can be None)
+    image_path = "SUIM/test/images/d_r_47.jpg"  # path to test image
+    mask_path = "SUIM/test/masks/d_r_47.bmp"  # Optional: path to mask for guided testing (can be None)
     num_samples = 30  # number of points to sample
-    output_dir = "outputs"  # directory containing training outputs
-    results_dir = "test_results"  # directory to save test results
+    output_dir = "outputs_suim"  # directory containing training outputs
+    results_dir = "test_results_suim"  # directory to save test results
     
     print("\nConfiguration:")
     print(f"Image path: {image_path}")
     print(f"Mask path: {mask_path}")
     print(f"Number of sample points: {num_samples}")
     print(f"Results directory: {results_dir}")
+    
+    # Verify paths
+    if not os.path.exists(image_path):
+        print(f"Warning: Image not found: {image_path}")
+        # Try to find any image
+        possible_dirs = [
+            "SUIM/test/images",
+            "SUIM/train/images",
+            "SUIM/images",
+        ]
+        
+        for img_dir in possible_dirs:
+            if os.path.exists(img_dir):
+                for ext in ['.jpg', '.jpeg', '.png']:
+                    image_files = glob.glob(os.path.join(img_dir, f"*{ext}"))
+                    if image_files:
+                        image_path = image_files[0]
+                        # Try to find matching mask
+                        base_name = os.path.basename(image_path)
+                        mask_name = os.path.splitext(base_name)[0] + '.bmp'
+                        mask_dir = img_dir.replace("images", "masks")
+                        mask_path = os.path.join(mask_dir, mask_name)
+                        if not os.path.exists(mask_path):
+                            mask_path = None
+                        
+                        print(f"Found alternative image: {image_path}")
+                        print(f"Found alternative mask: {mask_path}")
+                        break
+                if os.path.exists(image_path):
+                    break
+        
+        if not os.path.exists(image_path):
+            raise ValueError("Could not find any images in the SUIM dataset structure.")
+    
+    if mask_path and not os.path.exists(mask_path):
+        print(f"Warning: Mask not found: {mask_path}")
+        mask_path = None
     
     # Load model
     sam2_checkpoint = "checkpoints/sam2_hiera_small.pt"
@@ -200,18 +238,46 @@ def main():
     sam2_model = build_sam2(model_cfg, sam2_checkpoint, device="cuda")
     predictor = SAM2ImagePredictor(sam2_model)
     
-    # Load the best model from training
-    latest_output = max(Path(output_dir).glob('*'), key=os.path.getctime)
-    print(f"\nFound latest training output: {latest_output}")
-    checkpoint = load_best_model(latest_output)
-    predictor.model.load_state_dict(checkpoint['model_state_dict'])
-    print(f"Loaded model from epoch {checkpoint['epoch']} with validation IOU: {checkpoint['val_iou']:.4f}")
+    # Try to find trained model
+    use_trained_model = False
+    if os.path.exists(output_dir):
+        output_dirs = list(Path(output_dir).glob('*'))
+        if output_dirs:
+            try:
+                latest_output = max(output_dirs, key=os.path.getctime)
+                print(f"\nFound latest training output: {latest_output}")
+                checkpoint = load_best_model(latest_output)
+                predictor.model.load_state_dict(checkpoint['model_state_dict'])
+                print(f"Loaded model from epoch {checkpoint['epoch']} with validation IOU: {checkpoint['val_iou']:.4f}")
+                use_trained_model = True
+            except Exception as e:
+                print(f"Error loading trained model: {e}")
+    
+    if not use_trained_model:
+        print("\nNo trained model found or failed to load model. Using base SAM2 model.")
     
     # Read image and get points
     print(f"\nProcessing image: {image_path}")
     image, mask = read_image(image_path, mask_path)
-    input_points = get_points(image, mask, num_samples)
-    print(f"Generated {len(input_points)} sample points")
+    
+    try:
+        input_points = get_points(image, mask, num_samples)
+        print(f"Generated {len(input_points)} sample points using mask")
+    except Exception as e:
+        print(f"Error generating points from mask: {e}")
+        # Create grid-based points
+        h, w = image.shape[:2]
+        step = int(np.sqrt(h * w / num_samples))
+        input_points = []
+        for y in range(step//2, h, step):
+            for x in range(step//2, w, step):
+                input_points.append([[x, y]])
+                if len(input_points) >= num_samples:
+                    break
+            if len(input_points) >= num_samples:
+                break
+        input_points = np.array(input_points)
+        print(f"Using grid-based sampling instead. Generated {len(input_points)} points.")
     
     # Predict masks
     print("\nGenerating predictions...")
@@ -234,12 +300,16 @@ def main():
     seg_map, rgb_image = visualize_results(image, masks, scores, test_save_dir)
     
     # Display results (optional)
-    cv2.imshow("Original", image[..., ::-1])  # Convert back to BGR for display
-    cv2.imshow("Segmentation", rgb_image)
-    cv2.imshow("Overlay", (rgb_image * 0.5 + image * 0.5).astype(np.uint8))
-    print("\nPress any key to close the display windows...")
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    try:
+        cv2.imshow("Original", image[..., ::-1])  # Convert back to BGR for display
+        cv2.imshow("Segmentation", rgb_image)
+        cv2.imshow("Overlay", (rgb_image * 0.5 + image * 0.5).astype(np.uint8))
+        print("\nPress any key to close the display windows...")
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    except Exception as e:
+        print(f"Warning: Could not display images: {e}")
+        print("Results have been saved to disk")
 
 if __name__ == "__main__":
     main()

@@ -1,17 +1,10 @@
 # Marine-SAM
-### 零、Todo List
 
-> ✅SAM2 Fine-Tuning
->
-> ⬜完善一下环境配置步骤
->
-> ⬜实验数据收集整理
->
-> ⬜论文初稿
+### 一、SAM_ORI
 
-### 一、运行方法
+> 这是 SAM 的原始版本，未经过任何微调，效果还行（但肯定离预期还有一定距离）
 
-#### 1.1 SAM_ORI
+#### 1.1 运行方法
 
 ```bash
 # 环境配置方法
@@ -26,26 +19,20 @@ pip3 install torch==2.5.1+cu121 torchvision==0.20.1+cu121 torchaudio==2.5.1+cu12
 
 单张图片执行：直接运行 `python main.py` 即可，记得更改代码中的图片路径
 
-> 这是 SAM 的原始版本，未经过任何微调，效果还行（但肯定离预期还有一定距离）
+#### 1.2 效果展示
 
 ![image](./img/SAM_ORI_1.png)
 
 ![image](./img/SAM_ORI_2.png)
 
-#### 1.2 SAM2_FT
+### 二、SAM2_FT
 
-> 这是 SAM2 的微调版本，目前还没有进行微调，详见：
->
-> https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code?tab=readme-ov-file
->
-> https://medium.com/data-science/train-fine-tune-segment-anything-2-sam-2-in-60-lines-of-code-928dd29a63b3
+> 这是 SAM2 在新的数据集上进行微调的版本，目前分别在 RUOD 和 UFO120 数据集上进行了微调
+
+#### 2.1 运行方法
 
 ```bash
-# Windows 暂未测试，推荐用 WSL
-```
-
-```bash
-# Linux 实测可正常配置环境：
+# 有 NVIDIA GPU 的 Linux 环境可正常配置环境，不推荐使用 Windows 环境配置
 conda create -n SAM2 python=3.11 -y
 conda activate SAM2
 pip install numpy
@@ -53,5 +40,22 @@ pip install -e .
 pip install opencv-python pycocotools matplotlib onnxruntime onnx
 ```
 
-注意：需要先 `Train.py` 生成 `model.torch`，再 `TEST_Net.py`，另外，训练代码需要针对 RUOD 数据集进行格式上的调整。
+单张图片执行：直接运行 `python TEST_Net_<name>.py` 即可，记得更改代码中的图片路径
 
+#### 2.2 效果展示
+
+- Dataset: RUOD
+
+![image](./img/SAM2_FT_1.png)
+
+- Dataset: UFO120
+
+![image](./img/SAM2_FT_2.png)
+
+- Dataset: SUIM
+
+![image](./img/SAM2_FT_3.png)
+
+#### 2.3 微调过程
+
+![image](./img/SAM2_Loss.png)

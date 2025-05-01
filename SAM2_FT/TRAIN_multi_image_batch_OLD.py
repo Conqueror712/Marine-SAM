@@ -13,50 +13,43 @@ from sam2.build_sam import build_sam2
 from sam2.sam2_image_predictor import SAM2ImagePredictor
 
 # Read data
-
 data_dir=r"LabPicsV1//" # Path to dataset (LabPics 1)
 data=[] # list of files in dataset
 for ff, name in enumerate(os.listdir(data_dir+"Simple/Train/Image/")):  # go over all folder annotation
     data.append({"image":data_dir+"Simple/Train/Image/"+name,"annotation":data_dir+"Simple/Train/Instance/"+name[:-4]+".png"})
 def read_single(data): # read random image and single mask from  the dataset (LabPics)
+    #  select image
+    ent  = data[np.random.randint(len(data))] # choose random entry
+    Img = cv2.imread(ent["image"])[...,::-1]  # read image
+    ann_map = cv2.imread(ent["annotation"]) # read annotation
+    # resize image
+    r = np.min([1024 / Img.shape[1], 1024 / Img.shape[0]]) # scalling factor
+    Img = cv2.resize(Img, (int(Img.shape[1] * r), int(Img.shape[0] * r)))
+    ann_map = cv2.resize(ann_map, (int(ann_map.shape[1] * r), int(ann_map.shape[0] * r)),interpolation=cv2.INTER_NEAREST)
+    if Img.shape[0]<1024:
+        Img = np.concatenate([Img,np.zeros([1024 - Img.shape[0], Img.shape[1],3],dtype=np.uint8)],axis=0)
+        ann_map = np.concatenate([ann_map, np.zeros([1024 - ann_map.shape[0], ann_map.shape[1],3], dtype=np.uint8)],axis=0)
+    if Img.shape[1]<1024:
+        Img = np.concatenate([Img, np.zeros([Img.shape[0] , 1024 - Img.shape[1], 3], dtype=np.uint8)],axis=1)
+        ann_map = np.concatenate([ann_map, np.zeros([ann_map.shape[0] , 1024 - ann_map.shape[1] , 3], dtype=np.uint8)],axis=1)
 
-   #  select image
+    # merge vessels and materials annotations
+    mat_map = ann_map[:,:,0] # material annotation map
+    ves_map = ann_map[:,:,2] # vessel  annotaion map
+    mat_map[mat_map==0] = ves_map[mat_map==0]*(mat_map.max()+1) # merge maps
 
-        ent  = data[np.random.randint(len(data))] # choose random entry
-        Img = cv2.imread(ent["image"])[...,::-1]  # read image
-        ann_map = cv2.imread(ent["annotation"]) # read annotation
+    # Get binary masks and points
+    inds = np.unique(mat_map)[1:] # load all indices
+    if inds.__len__()>0:
+            ind = inds[np.random.randint(inds.__len__())]  # pick single segment
+    else:
+            return read_single(data)
 
-   # resize image
-
-        r = np.min([1024 / Img.shape[1], 1024 / Img.shape[0]]) # scalling factor
-        Img = cv2.resize(Img, (int(Img.shape[1] * r), int(Img.shape[0] * r)))
-        ann_map = cv2.resize(ann_map, (int(ann_map.shape[1] * r), int(ann_map.shape[0] * r)),interpolation=cv2.INTER_NEAREST)
-        if Img.shape[0]<1024:
-            Img = np.concatenate([Img,np.zeros([1024 - Img.shape[0], Img.shape[1],3],dtype=np.uint8)],axis=0)
-            ann_map = np.concatenate([ann_map, np.zeros([1024 - ann_map.shape[0], ann_map.shape[1],3], dtype=np.uint8)],axis=0)
-        if Img.shape[1]<1024:
-            Img = np.concatenate([Img, np.zeros([Img.shape[0] , 1024 - Img.shape[1], 3], dtype=np.uint8)],axis=1)
-            ann_map = np.concatenate([ann_map, np.zeros([ann_map.shape[0] , 1024 - ann_map.shape[1] , 3], dtype=np.uint8)],axis=1)
-
-   # merge vessels and materials annotations
-
-        mat_map = ann_map[:,:,0] # material annotation map
-        ves_map = ann_map[:,:,2] # vessel  annotaion map
-        mat_map[mat_map==0] = ves_map[mat_map==0]*(mat_map.max()+1) # merge maps
-
-   # Get binary masks and points
-
-        inds = np.unique(mat_map)[1:] # load all indices
-        if inds.__len__()>0:
-              ind = inds[np.random.randint(inds.__len__())]  # pick single segment
-        else:
-              return read_single(data)
-
-        #for ind in inds:
-        mask=(mat_map == ind).astype(np.uint8) # make binary mask corresponding to index ind
-        coords = np.argwhere(mask > 0) # get all coordinates in mask
-        yx = np.array(coords[np.random.randint(len(coords))]) # choose random point/coordinate
-        return Img,mask,[[yx[1], yx[0]]]
+    # for ind in inds:
+    mask=(mat_map == ind).astype(np.uint8) # make binary mask corresponding to index ind
+    coords = np.argwhere(mask > 0) # get all coordinates in mask
+    yx = np.array(coords[np.random.randint(len(coords))]) # choose random point/coordinate
+    return Img,mask,[[yx[1], yx[0]]]
 
 def read_batch(data,batch_size=4):
       limage = []
