@@ -2,7 +2,7 @@
 
 ### 一、SAM_ORI
 
-> 这是 SAM 的原始版本，未经过任何微调，效果还行（但肯定离预期还有一定距离）
+> 这是 SAM 的原始版本，未微调
 
 #### 1.1 运行方法
 
@@ -21,13 +21,11 @@ pip3 install torch==2.5.1+cu121 torchvision==0.20.1+cu121 torchaudio==2.5.1+cu12
 
 #### 1.2 效果展示
 
-![image](./img/SAM_ORI_1.png)
-
-![image](./img/SAM_ORI_2.png)
+![image](./img/SAM_ORI.png)
 
 ### 二、SAM2_FT
 
-> 这是 SAM2 在新的数据集上进行微调的版本，目前分别在 RUOD 和 UFO120 数据集上进行了微调
+> 这是 SAM2 分别在 RUOD, UFO120, SUIM 数据集上进行了微调的版本
 
 #### 2.1 运行方法
 
@@ -40,22 +38,14 @@ pip install -e .
 pip install opencv-python pycocotools matplotlib onnxruntime onnx
 ```
 
-单张图片执行：直接运行 `python TEST_Net_<name>.py` 即可，记得更改代码中的图片路径
+单张图片执行：直接运行 `python TEST_Net_<dataset_name>.py` 即可，记得更改代码中的图片路径
 
 #### 2.2 效果展示
 
-- Dataset: RUOD
+![image](./img/SUIM_Single.png)
 
-![image](./img/SAM2_FT_1.png)
-
-- Dataset: UFO120
-
-![image](./img/SAM2_FT_2.png)
-
-- Dataset: SUIM
-
-![image](./img/SAM2_FT_3.png)
+![image](./img/SUIM_Multiple.png)
 
 #### 2.3 微调过程
 
-![image](./img/SAM2_Loss.png)
+![image](./img/Loss.png)
